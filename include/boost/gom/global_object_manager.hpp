@@ -26,6 +26,8 @@
 
 #include <map>
 
+#include <iostream>
+
 namespace boost { namespace gom {
 
 class GlobalObjectManager
@@ -273,6 +275,7 @@ private:
         // "callTheInitializers was called with no initilizers."
         // "This mean that it was either already called ... or it does not need to be called at all.");
 
+        std::cout << "The number of global object is :" << (initializers.size() + argInitializers.size()) << "\n"; 
 
         // We must honor the order of the initlizers whatever type they are. We need to mix them if it is needed
         std::multimap<int, InitializeFunction>::iterator it = initializers.begin();
@@ -343,6 +346,8 @@ private:
     }
 
 };
+
+typedef boost::shared_ptr<GlobalObjectManager> GlobalObjectManagerSPtr;
 
 }
 
