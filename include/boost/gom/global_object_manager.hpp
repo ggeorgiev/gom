@@ -55,9 +55,9 @@ public:
     // with initializationOrder() - 1 value
 
     // It is function instead of static const value, because gcc compiler (probably others)
-    // static const values are still global objects. Using one static value to initialize
-    // another is not reliable, because the initialization order could wrong and variable to
-    // be used before to be initialized with a random effect over the end result
+    // static const values are also global objects. Using one static value to initialize
+    // another is not reliable, because the initialization order could be wrong and variable
+    // could be used before to be initialized with a random effect over the end result
     static inline int initializationOrder()
     {
         return 1;
@@ -274,7 +274,7 @@ private:
         // "This mean that it was either already called ... or it does not need to be called at all.");
 
 
-        // We must owner the order of the initlizers whatever type they are. We need to mix them if it is needed
+        // We must honor the order of the initlizers whatever type they are. We need to mix them if it is needed
         std::multimap<int, InitializeFunction>::iterator it = initializers.begin();
         std::multimap<int, ArgInitializeFunction>::iterator ait = argInitializers.begin();
 
