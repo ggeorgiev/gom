@@ -1,0 +1,3 @@
+test-suite gom :
+    [ run gom_test.cpp ]
+    ;
