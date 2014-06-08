@@ -49,5 +49,8 @@ int main()
 
     boost::gom::GlobalObjectManager gom;
 
+    if (gObject->id() != 1)
+        return 1;
+
     return 0;
 }
