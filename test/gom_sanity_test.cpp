@@ -1,5 +1,7 @@
 #include <boost/gom/global_object_manager.hpp>
 
+#include <boost/detail/lightweight_test.hpp>
+
 #include <boost/shared_ptr.hpp>
 
 #include <iostream>
@@ -22,24 +24,18 @@ GlobalObjectSPtr gObjectSPtr = boost::gom::GlobalObjectManager::sharedPointer(gO
 
 int main()
 {
-    if (gObjectRPtr != NULL)
-        return 1;
-    if (gObjectSPtr != NULL)
-        return 1;
+    BOOST_TEST(gObjectRPtr == NULL);
+    BOOST_TEST(gObjectSPtr == NULL);
 
     {
         boost::gom::GlobalObjectManager gom;
 
-        if (gObjectRPtr == NULL)
-            return 1;
-        if (gObjectSPtr == NULL)
-            return 1;
+        BOOST_TEST(gObjectRPtr != NULL);
+        BOOST_TEST(gObjectSPtr != NULL);
     }
 
-    if (gObjectRPtr != NULL)
-        return 1;
-    if (gObjectSPtr != NULL)
-        return 1;
+    BOOST_TEST(gObjectRPtr == NULL);
+    BOOST_TEST(gObjectSPtr == NULL);
 
-    return 0;
+    return boost::report_errors();
 }

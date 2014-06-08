@@ -26,5 +26,5 @@ int main()
     BOOST_TEST(gExeObject != NULL);
     BOOST_TEST(gDllObject != NULL);
 
-    return 1;//::boost::report_errors();
+    return boost::report_errors();
 }

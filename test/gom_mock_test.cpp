@@ -1,5 +1,7 @@
 #include <boost/gom/global_object_manager.hpp>
 
+#include <boost/detail/lightweight_test.hpp>
+
 #include <boost/shared_ptr.hpp>
 
 #include <iostream>
@@ -49,8 +51,7 @@ int main()
 
     boost::gom::GlobalObjectManager gom;
 
-    if (gObject->id() != 1)
-        return 1;
+    BOOST_TEST(gObject->id() == 1);
 
-    return 0;
+    return boost::report_errors();
 }
