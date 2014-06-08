@@ -1,3 +1,5 @@
 test-suite gom :
-    [ run gom_test.cpp ]
+    [ run gom_dependency_test.cpp ]
+    [ run gom_mock_test.cpp ]
+    [ run gom_sanity_test.cpp ]
     ;
