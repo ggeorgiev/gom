@@ -25,6 +25,7 @@
 #include <boost/make_shared.hpp>
 
 #include <map>
+#include <vector>
 
 #include <iostream>
 
@@ -36,6 +37,15 @@ public:
     typedef boost::function<void(void)> InitializeFunction;
     typedef boost::function<void(int, const char**)> ArgInitializeFunction;
     typedef boost::function<void(void)> UninitializeFunction;
+
+    struct InitializeRecord
+    {
+        InitializeFunction    voidInitializeFn;
+        ArgInitializeFunction argInitializeFn;
+
+        UninitializeFunction  uninitializeFn;
+    };
+
 
     GlobalObjectManager()
     {
@@ -82,29 +92,21 @@ public:
     // all objects with high initializationOrder. If two or more objects have the same
     // initializationOrder they will be initialized in a "random" order. The initializer method
     // pointer is required. Uninitializer method pointer is optional. The objects will
-    // be uninitialized in reversed order. Note there is no guarantee that object with the same
-    // initializationOrder will uninitialized in exact reversed initialize order. The order
-    // should be considered "random"
+    // be uninitialized in reversed order. There is guarantee even for objects with the same
+    // initializationOrder will be uninitialized in exact reversed initialize order.
     static bool genericRegister(int initializationOrder,
                                 InitializeFunction initializer,
                                 UninitializeFunction uninitializer)
     {
-        BOOST_ASSERT(initializer != NULL);
-        _initializers().insert(std::multimap<int, InitializeFunction>::value_type(initializationOrder, initializer));
-        if (uninitializer != NULL)
-            _uninitializers().insert(std::multimap<int, UninitializeFunction>::value_type(initializationOrder, uninitializer));
+        add(initializationOrder, initializer, NULL, uninitializer);
         return true;
     }
-
 
     static bool genericArgRegister(int initializationOrder,
                                    ArgInitializeFunction initializer,
                                    UninitializeFunction uninitializer)
     {
-        BOOST_ASSERT(initializer != NULL);
-        _argInitializers().insert(std::multimap<int, ArgInitializeFunction>::value_type(initializationOrder, initializer));
-        if (uninitializer != NULL)
-            _uninitializers().insert(std::multimap<int, UninitializeFunction>::value_type(initializationOrder, uninitializer));
+        add(initializationOrder, NULL, initializer, uninitializer);
         return true;
     }
 
@@ -122,10 +124,7 @@ public:
                                         InitializeFunction initializer,
                                         UninitializeFunction uninitializer)
     {
-        BOOST_ASSERT(initializer != NULL);
-        _initializers().insert(std::multimap<int, InitializeFunction>::value_type(initializationOrder, initializer));
-        if (uninitializer != NULL)
-            _uninitializers().insert(std::multimap<int, UninitializeFunction>::value_type(initializationOrder, uninitializer));
+        add(initializationOrder, initializer, NULL, uninitializer);
         return NULL;
     }
 
@@ -134,10 +133,7 @@ public:
                                            ArgInitializeFunction initializer,
                                            UninitializeFunction uninitializer)
     {
-        BOOST_ASSERT(initializer != NULL);
-        _argInitializers().insert(std::multimap<int, ArgInitializeFunction>::value_type(initializationOrder, initializer));
-        if (uninitializer != NULL)
-            _uninitializers().insert(std::multimap<int, UninitializeFunction>::value_type(initializationOrder, uninitializer));
+        add(initializationOrder, NULL, initializer, uninitializer);
         return NULL;
     }
 
@@ -264,87 +260,71 @@ public:
 
 
 private:
+    static void add(int initializationOrder,
+                    InitializeFunction voidInitializer,
+                    ArgInitializeFunction argInitializer,
+                    UninitializeFunction uninitializer)
+    {
+        BOOST_ASSERT(voidInitializer != NULL || argInitializer != NULL);
+        BOOST_ASSERT(voidInitializer == NULL || argInitializer == NULL);
+
+        InitializeRecord record;
+        record.voidInitializeFn = voidInitializer;
+        record.argInitializeFn = argInitializer;
+        record.uninitializeFn = uninitializer;
+
+        _initializers().insert(std::multimap<int, InitializeRecord>::value_type(initializationOrder, record));
+    }
+
+
     void callTheInitializers(int argc, const char** argv)
     {
         // initialize all global objects
-        std::multimap<int, InitializeFunction>& initializers = _initializers();
-        std::multimap<int, ArgInitializeFunction>& argInitializers = _argInitializers();
+        std::multimap<int, InitializeRecord>& initializers = _initializers();
 
         // TODO: log this:
         // initializers.size() + argInitializers.size() > 0,
         // "callTheInitializers was called with no initilizers."
         // "This mean that it was either already called ... or it does not need to be called at all.");
 
-        std::cout << "The number of global object is :" << (initializers.size() + argInitializers.size()) << "\n"; 
+        std::cout << "The number of global object is :" << initializers.size() << "\n"; 
 
-        // We must honor the order of the initlizers whatever type they are. We need to mix them if it is needed
-        std::multimap<int, InitializeFunction>::iterator it = initializers.begin();
-        std::multimap<int, ArgInitializeFunction>::iterator ait = argInitializers.begin();
-
-        while((it != initializers.end()) && (ait != argInitializers.end()))
+        for (std::multimap<int, InitializeRecord>::iterator it = initializers.begin();
+               it != initializers.end(); ++it)
         {
-            if (it->first < ait->first)
-            {
-                InitializeFunction& initializer = it->second;
-                initializer();
-                ++it;
-            }
-            else
-            {
-                ArgInitializeFunction& argInitializer = ait->second;
+            InitializeFunction& voidInitializer = it->second.voidInitializeFn;
+            ArgInitializeFunction& argInitializer = it->second.argInitializeFn;
+            if (voidInitializer != NULL)
+                voidInitializer();
+            else if (argInitializer != NULL)
                 argInitializer(argc, argv);
-                ++ait;
-            }
-        }
 
-        while(it != initializers.end())
-        {
-            InitializeFunction& initializer = it->second;
-            initializer();
-            ++it;
-        }
-
-        while(ait != argInitializers.end())
-        {
-            ArgInitializeFunction& argInitializer = ait->second;
-            argInitializer(argc, argv);
-            ++ait;
+            UninitializeFunction& uninitializer = it->second.uninitializeFn;
+            if (uninitializer != NULL)
+                uninitializers.push_back(uninitializer);
         }
 
         // This data is useless anymore - not a big deal but let clear it
         initializers.clear();
-        argInitializers.clear();
     }
 
     void callTheUninitializers()
     {
         // uninitialize all global objects
-        std::multimap<int, UninitializeFunction>& uninitializers = _uninitializers();
-        for (std::multimap<int, UninitializeFunction>::reverse_iterator it = uninitializers.rbegin(); it != uninitializers.rend(); ++it)
+        for (std::vector<UninitializeFunction>::reverse_iterator it = uninitializers.rbegin(); it != uninitializers.rend(); ++it)
         {
-            UninitializeFunction& uninitializer = it->second;
+            UninitializeFunction& uninitializer = *it;
             uninitializer();
         }
     }
 
-    static std::multimap<int, InitializeFunction>& _initializers()
+    static std::multimap<int, InitializeRecord>& _initializers()
     {
-        static std::multimap<int, InitializeFunction> initializers;
+        static std::multimap<int, InitializeRecord> initializers;
         return initializers;
     }
 
-    static std::multimap<int, ArgInitializeFunction>& _argInitializers()
-    {
-        static std::multimap<int, ArgInitializeFunction> initializers;
-        return initializers;
-    }
-
-    static std::multimap<int, UninitializeFunction>& _uninitializers()
-    {
-        static std::multimap<int, UninitializeFunction> uninitializers;
-        return uninitializers;
-    }
-
+    std::vector<UninitializeFunction> uninitializers;
 };
 
 typedef boost::shared_ptr<GlobalObjectManager> GlobalObjectManagerSPtr;
