@@ -34,8 +34,8 @@ namespace boost { namespace gom {
 class GlobalObjectManager
 {
 public:
-    typedef boost::function<void(void)> InitializeFunction;
-    typedef boost::function<void(int, const char**)> ArgInitializeFunction;
+    typedef boost::function<bool(void)> InitializeFunction;
+    typedef boost::function<bool(int, const char**)> ArgInitializeFunction;
     typedef boost::function<void(void)> UninitializeFunction;
 
     struct InitializeRecord
@@ -137,16 +137,19 @@ public:
         return NULL;
     }
 
-
     // Provides default initialize method for global object hold with a raw pointer.
-    template <class T>
-    static void initializeRawPointer(T** ppPointer)
+    template <class T, class Mock = T>
+    static bool initializeRawPointer(T** ppPointer)
     {
         // Initialize pointer only if it is not already
         // This could be used from test framework to initialize the code with
         // mock object with initializationOrder() - 1 value
         if (!*ppPointer)
-            *ppPointer = new T();
+        {
+            *ppPointer = new Mock();
+            return true;
+        }
+        return false;
     }
 
     // Provides default uninitialize method for global object hold with a raw pointer.
@@ -178,15 +181,27 @@ public:
         return rawPointer(T::initializationOrder(), pPointer);
     }
 
+    // Register mock object to replace the default initialize and uninitialize methods 
+    // for global object hold with a raw pointer. 
+    template <class T, class Mock>
+    static void mockRawPointer(T*& pPointer)
+    {
+        genericPointerRegister(T::initializationOrder() - 1,
+                               boost::bind(initializeRawPointer<T, Mock>, &pPointer),
+                               boost::bind(uninitializeRawPointer<Mock>, (Mock**)&pPointer));
+    }
+
+
     // Provides default initialize method for global object hold with a shared pointer.
     template <class T>
-    static void initializeSharedPointer(boost::shared_ptr<T>* ppPointer)
+    static bool initializeSharedPointer(boost::shared_ptr<T>* ppPointer)
     {
         // Initialize pointer only if it is not already
         // This could be used from test framework to initialize the code with
         // mock object with initializationOrder() - 1 value
         if (!*ppPointer)
             *ppPointer = boost::make_shared<T>();
+        return true;
     }
 
     // Provides default uninitialize method for global object hold with a shared pointer.
@@ -241,10 +256,11 @@ public:
 
     // Provides initialize method for global object hold with a shared pointer to become equal to another
     template <class T>
-    static void initializeSharedPointer(boost::shared_ptr<T>* ppPointer, boost::shared_ptr<T>* ppSource)
+    static bool initializeSharedPointer(boost::shared_ptr<T>* ppPointer, boost::shared_ptr<T>* ppSource)
     {
         if (!*ppPointer)
             *ppPointer = *ppSource;
+        return true;
     }
 
     // Register initialize and uninitialize methods for global object hold with a shared pointer.
@@ -294,14 +310,19 @@ private:
         {
             InitializeFunction& voidInitializer = it->second.voidInitializeFn;
             ArgInitializeFunction& argInitializer = it->second.argInitializeFn;
-            if (voidInitializer != NULL)
-                voidInitializer();
-            else if (argInitializer != NULL)
-                argInitializer(argc, argv);
 
-            UninitializeFunction& uninitializer = it->second.uninitializeFn;
-            if (uninitializer != NULL)
-                uninitializers.push_back(uninitializer);
+            bool init = false;
+            if (voidInitializer != NULL)
+                init = voidInitializer();
+            else if (argInitializer != NULL)
+                init = argInitializer(argc, argv);
+
+            if (init)
+            {
+                UninitializeFunction& uninitializer = it->second.uninitializeFn;
+                if (uninitializer != NULL)
+                    uninitializers.push_back(uninitializer);
+            }
         }
 
         // This data is useless anymore - not a big deal but let clear it

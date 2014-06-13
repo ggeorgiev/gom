@@ -1,0 +1,86 @@
+
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=US-ASCII">
+<title>Boost.gom</title>
+<link rel="stylesheet" href="../../doc/src/boostbook.css" type="text/css">
+<meta name="generator" content="DocBook XSL Stylesheets V1.78.1">
+<link rel="home" href="index.html" title="The Boost C++ Libraries BoostBook Documentation Subset">
+<link rel="up" href="libraries.html" title="Part&#160;I.&#160;The Boost C++ Libraries (BoostBook Subset)">
+<link rel="prev" href="array/ack.html" title="Acknowledgements">
+<link rel="next" href="gom/thread_coordination.html" title="Thread coordination using Boost.gom">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+    <div class="chapter">
+        <div class="titlepage">
+            <div>
+                <div>
+                    <h2 class="title">
+                        Boost.Gom</h2></div>
+<div><div class="author"><h3 class="author">
+    George Georgiev</h3>
+    </div></div>
+                <div>
+                    <p class="copyright">Copyright &#169; 2014 George Georgiev</p></div>
+<div><div class="legalnotice">
+<a name="gom.legal"></a><p>
+        Distributed under the Boost Software License, Version 1.0. (See accompanying
+        file LICENSE_1_0.txt or copy at <a href="http://www.boost.org/LICENSE_1_0.txt" target="_top">http://www.boost.org/LICENSE_1_0.txt</a>)
+      </p>
+</div></div>
+</div></div>
+<div class="toc">
+<p><b>Table of Contents</b></p>
+<dl class="toc">
+<dt><span class="section"><a href="gom.html#gom.introduction">Introduction</a></span></dt>
+<dd><dl>
+<dt><span class="section"><a href="gom.html#gom.introduction.introduction_presenting">Presenting
+      Boost.gom</a></span></dt>
+<dt><span class="section"><a href="gom.html#gom.introduction.introduction_purpose">Purpose</a></span></dt>
+</dl></dd>
+</dl>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h2 class="title" style="clear: both">
+<a name="gom.introduction"></a><a class="link" href="gom.html#gom.introduction" title="Introduction">Introduction</a>
+</h2></div></div></div>
+<div class="toc"><dl class="toc">
+<dt><span class="section"><a href="gom.html#gom.introduction.introduction_presenting">Presenting
+      Boost.gom</a></span></dt>
+<dt><span class="section"><a href="gom.html#gom.introduction.introduction_purpose">Purpose</a></span></dt>
+</dl></div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="gom.introduction.introduction_presenting"></a><a class="link" href="gom.html#gom.introduction.introduction_presenting" title="Presenting Boost.gom">Presenting
+      Boost.</a>Gom</h3></div></div></div>
+<p>
+        <span class="bold"><strong>Boost.Gom</strong></span> is a library that provides
+        a global objects management functionality to allow proper bootstrapping 
+        and shutdown of the applications. It creates mechanism for setting specifying
+        initialization and uninitialization order of global objects solving multi-threading,
+        dependency, mocking issues.</p>
+    <p>
+        Note that
+        <span class="bold"><strong>Boost.Gom</strong></span> does not have for goal to promote or encoarage using of global objects. They should be concedered evil and avoided.</p>
+    <p>
+        Users of this library should already be familiar with crc initialization, static object initialization, singlenton patterns, shared libraries loading and unloading mechanics.</p>
+<p>
+        The implementation makes use of crc initialization to construct the initialization list.
+      </p>
+</div>
+<div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="gom.introduction.introduction_purpose"></a><a class="link" href="gom.html#gom.introduction.introduction_purpose" title="Purpose">Purpose</a></h3>
+    <p class="title">
+        The perpose of
+        <span class="bold"><strong>Boost.Gom</strong></span> is to create an relatively easy mechanism for initializng and unitializing global objects that with the existing c++ standards is a challange.</p>
+    </div></div></div>
+</div>
+</div>
+</div>
+<table xmlns:rev="http://www.cs.rpi.edu/~gregod/boost/tools/doc/revision" width="100%"><tr>
+<td align="left"><p><small>Last revised: May 12, 2014 at 21:07:24 GMTl></p></td>
+<td align="right"><div class="copyright-footer"></div></td>
+</tr></table>
+</body>
+</html>

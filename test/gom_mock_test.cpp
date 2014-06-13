@@ -27,16 +27,6 @@ GlobalObjectRPtr gObject = boost::gom::GlobalObjectManager::rawPointer(gObject);
 class GlobalObjectMock : public GlobalObject
 {
 public:
-    static inline int initializationOrder()
-    {
-        return GlobalObject::initializationOrder() - 1;
-    }
-
-    static void initilize()
-    {
-        gObject = new GlobalObjectMock();
-    }
-
     virtual int id()
     {
         return 1;
@@ -47,7 +37,7 @@ public:
 int main()
 {
     // mocking from main
-    boost::gom::GlobalObjectManager::genericRegister(GlobalObjectMock::initializationOrder(), &GlobalObjectMock::initilize, NULL);
+    boost::gom::GlobalObjectManager::mockRawPointer<GlobalObject, GlobalObjectMock>(gObject);
 
     boost::gom::GlobalObjectManager gom;
 
